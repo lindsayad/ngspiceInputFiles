@@ -1,4 +1,4 @@
-Alex simple equivalent circuit model of a capicitor
+Alex simple equivalent circuit model of a capacitor
 *
 * This circuit contains only Berkeley SPICE3 components.
 *
@@ -6,13 +6,21 @@ Alex simple equivalent circuit model of a capicitor
 * a sinewave input at node "1", a gain of approximately -3.9,
 * and output on node "coll".
 *
-.tran 1e-3 1e0
+.tran .001s 5s
 *
-vcc 1 0 1.0
-r1 1 2 1.0
-c1 2 0 10uF
-r2 1 0 1.0
+vcc 1 0 20.0
+r1 1 2 1MEG
+vdummy2 2 3 0.0
+
+s1 3 5 3 0 smodel1 ON
+.MODEL smodel1 SW(VT=7.0 VH=0.0 RON=1.e-2 ROFF=1.e2)
+r2 5 6 1
 *
-.model generic npn
+vdummy0 4 0 0.0
+vdummy1 6 0 0.0
+*
+.ic v(1)=0 v(2)=0 v(3)=0 v(4)=0 v(5)=0 v(6)=0
 *
 .end
+
+c1 3 4 1uF

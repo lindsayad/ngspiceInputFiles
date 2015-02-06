@@ -1,0 +1,23 @@
+Alex simple equivalent circuit model of a capicitor
+*
+* This circuit contains only Berkeley SPICE3 components.
+*
+* The circuit is an AC coupled transistor amplifier with
+* a sinewave input at node "1", a gain of approximately -3.9,
+* and output on node "coll".
+*
+.tran 1.0u 1.e-2 UIC
+*
+vPS 1 0 10.0
+r1 1 2 10.0
+c1 2 0 1.0F
+s1 2 3 2 0 smodel1 OFF
+.MODEL smodel1 SW(VT=5.0 VH=0.0 RON=1.e-2 ROFF=1.e2)
+r2 3 4 1.0
+vdummy0 4 0 0.0
+.OPTIONS TRTOL=1.0 CHGTOL=1.E-16
+
+*
+* .model generic npn
+*
+.end
