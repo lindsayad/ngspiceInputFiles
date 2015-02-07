@@ -8,19 +8,43 @@ Alex simple equivalent circuit model of a capacitor
 *
 .tran .001s 5s
 *
-vcc 1 0 20.0
-r1 1 2 1MEG
-vdummy2 2 3 0.0
-
-s1 3 5 3 0 smodel1 ON
-.MODEL smodel1 SW(VT=7.0 VH=0.0 RON=1.e-2 ROFF=1.e2)
-r2 5 6 1
+.PARAM VThreshold=7.0
+.PARAM VHyster=0.001
+.PARAM RPlas=1
+.PARAM RAir=1000MEG
+.PARAM Aconst=log(RAir/RPlas)/3.14
+.PARAM Bconst=log(1/(RAir*RPlas))/2.0
 *
-vdummy0 4 0 0.0
-vdummy1 6 0 0.0
+*.FUNC varR(Vc) {1.0/exp(Aconst * atan((Vc-VThreshold)/abs(VHyster))+Bconst)}
+*.FUNC varR(Vc) {2.0*Vc}
 *
-.ic v(1)=0 v(2)=0 v(3)=0 v(4)=0 v(5)=0 v(6)=0
+vcc 1 0 8.0
+r1 1 2 1MEG 
+vdummy0 2 vPlas 0.0 
+c1 vPlas 4 1uF 
+*r2 vPlas 5 varR(vPlas) 
+r2 vPlas 5 {1.0/exp(Aconst*atan((V(vPlas)-VThreshold)/abs(VHyster))+Bconst)}
+*r2 vPlas 5 {1.0/exp((log(10MEG/1)/3.14) * atan((V(vPlas)-VThreshold)/abs(VHyster))+log(1/(10MEG*1))/2.0)}
+*r2 vPlas 5 r='1.0/exp((log(10MEG/1)/3.14)*atan((V(vPlas)-VThreshold)/abs(VHyster))+log(1/(10MEG*1))/2.0)'
+*r2 vPlas 5 1.0
 *
+*s1 3 5 3 0 smodel1 ON
+*.MODEL smodel1 SW(VT=7.0 VH=-1.0 RON=0.1MEG ROFF=10MEG)
+*
+vdummy1 4 0 0.0 
+vdummy2 5 0 0.0 
+*
+.ic v(1)=0 v(2)=0 v(vPlas)=0 v(4)=0 v(5)=0
+*
+.options TRTOL=1.0 CHGTOL=1.e-16
+*
+*.print varR=PAR('1.0/exp((log(10MEG/1)/3.14)*atan((V(vPlas)-VThreshold)/abs(VHyster))+log(1/(10MEG*1))/2.0)')
+.print varR=PAR('1.0/exp(Aconst*atan((V(vPlas)-VThreshold)/abs(VHyster))+Bconst)')
+*
+*.plot i(vdummy0)
+*.plot i(vdummy1)
+*.plot i(vdummy2)
+*.plot v(3)
 .end
 
-c1 3 4 1uF
+
