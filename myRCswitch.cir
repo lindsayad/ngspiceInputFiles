@@ -1,0 +1,52 @@
+Alex simple equivalent circuit model of a capacitor
+*
+* This circuit contains only Berkeley SPICE3 components.
+*
+* The circuit is an AC coupled transistor amplifier with
+* a sinewave input at node "1", a gain of approximately -3.9,
+* and output on node "coll".
+*
+.tran .001s 5s 0.0s 1e-3s
+*
+.PARAM VThreshold=7.0
+.PARAM VHyster=0.001
+.PARAM RPlas=1
+.PARAM RAir=1000MEG
+.PARAM Aconst=log(RAir/RPlas)/3.14
+.PARAM Bconst=log(1/(RAir*RPlas))/2.0
+*
+*.FUNC varR(Vc) {1.0/exp(Aconst * atan((Vc-VThreshold)/abs(VHyster))+Bconst)}
+*.FUNC varR(Vc) {2.0*Vc}
+*
+vcc vccTerm 0 8.0
+r1 vccTerm r1Term 1MEG 
+vdummy0 r1Term vPlas 0.0 
+c1 vPlas c1Term 1uF 
+*r2 vPlas 5 varR(vPlas) 
+*r2 vPlas 5 {1.0/exp(Aconst*atan((V(vPlas)-VThreshold)/abs(VHyster))+Bconst)}
+*r2 vPlas 5 {1.0/exp((log(10MEG/1)/3.14) * atan((V(vPlas)-VThreshold)/abs(VHyster))+log(1/(10MEG*1))/2.0)}
+*r2 vPlas 5 r='1.0/exp((log(10MEG/1)/3.14)*atan((V(vPlas)-VThreshold)/abs(VHyster))+log(1/(10MEG*1))/2.0)'
+r2 vPlas r2Term 1000MEG
+*
+*
+s1 vPlas s1Term vPlas 0 smodel1 ON
+.MODEL smodel1 SW(VT=4.0 VH=0.0 RON=.99MEG ROFF=1.01MEG)
+*
+vdummy1 c1Term 0 0.0 
+vdummy2 r2Term 0 0.0 
+vdummy3 s1Term 0 0.0
+*
+.ic v(vccTerm)=0 v(r1Term)=0 v(vPlas)=0 v(c1Term)=0 v(r2Term)=0 v(s1Term)=0
+*
+.options TRTOL=100.0 CHGTOL=1.e-16
+*
+*.print varR=PAR('1.0/exp((log(10MEG/1)/3.14)*atan((V(vPlas)-VThreshold)/abs(VHyster))+log(1/(10MEG*1))/2.0)')
+*.print varR=PAR('1.0/exp(Aconst*atan((V(vPlas)-VThreshold)/abs(VHyster))+Bconst)')
+*
+*.plot i(vdummy0)
+*.plot i(vdummy1)
+*.plot i(vdummy2)
+*.plot v(3)
+.end
+
+
